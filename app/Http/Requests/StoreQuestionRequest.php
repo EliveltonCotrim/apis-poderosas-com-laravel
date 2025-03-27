@@ -23,7 +23,7 @@ class StoreQuestionRequest extends FormRequest
     {
         return [
             'question' => ['required', 'string', 'max:1000'],
-            'status'   => ['required', 'string', 'in:draft,published'],
+            'status' => ['nullable', 'string', 'in:draft,published'],
         ];
     }
 }
