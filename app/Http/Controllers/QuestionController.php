@@ -22,13 +22,14 @@ class QuestionController extends Controller
     public function store(StoreQuestionRequest $request)
     {
         try {
-            $question = Question::create([
+
+            $question = user()->questions()->create([
                 'question' => $request->question,
-                'user_id'  => auth()->id(),
-                'status'   => 'draft',
+                'status'   => $request->get('status', 'draft'),
             ]);
 
-            return new QuestionResource($question);
+            // return new QuestionResource($question);
+            return QuestionResource::make($question);
 
         } catch (\Exception $e) {
             return response()->json([

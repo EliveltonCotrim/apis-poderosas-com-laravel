@@ -35,7 +35,7 @@ it('should be create a mew question', function () {
 
 });
 
-test('after creating a new question, I need to make sure that it cretes on _datft_ status', function () {
+test('with the creation of the question, we need to make sure that it cretes with _datft_ status', function () {
     $user = User::factory()->create();
 
     Sanctum::actingAs($user);
@@ -51,12 +51,10 @@ test('after creating a new question, I need to make sure that it cretes on _datf
                 'status',
                 'created_at',
                 'updated_at',
-                'user' => [
+                'created_by' => [
                     'id',
                     'name',
                     'email',
-                    'created_at',
-                    'updated_at',
                 ],
             ],
         ])->assertSuccessful();
@@ -118,3 +116,39 @@ describe('validation rules', function () {
         expect(Question::where('question', 'Question Title ? ?')->count())->toBe(1);
     });
 });
+
+test('after creating we we should return a status 201 with the creted question', function () {
+    $user = User::factory()->create();
+
+    Sanctum::actingAs($user);
+
+    $response = postJson(route('questions.store'), [
+        'question' => 'Question Title?',
+    ])->assertCreated()
+        ->assertSessionHasNoErrors();
+
+    $question = Question::latest()->first()->load('user');
+
+    $response->assertJson([
+        'data' => [
+            'id' => $question->id,
+            'question' => $question->question,
+            'status' => $question->status,
+            'created_by' => [
+                'id' => $question->user->id,
+                'name' => $question->user->name,
+                'email' => $question->user->email,
+            ],
+            'created_at' => $question->created_at->format('Y-m-d H:i:s'),
+            'updated_at' => $question->updated_at->format('Y-m-d H:i:s'),
+        ]
+    ]);
+
+    assertDatabaseCount('questions', 1);
+    assertDatabaseHas('questions', [
+        'user_id' => $user->id,
+        'question' => 'Question Title?',
+    ]);
+});
+
+
