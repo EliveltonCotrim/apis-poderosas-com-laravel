@@ -2,8 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\WithQuestionMark;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
+/**
+ * @property-read string $question
+ */
 class UpdateQuestionRequest extends FormRequest
 {
     /**
@@ -11,7 +16,7 @@ class UpdateQuestionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return auth()->check();
     }
 
     /**
@@ -22,7 +27,8 @@ class UpdateQuestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'question' => ['required', 'string', 'min:10', 'max:1000', Rule::unique('questions', 'question'), new WithQuestionMark],
+            'status' => ['nullable', 'string', 'in:draft,published'],
         ];
     }
 }

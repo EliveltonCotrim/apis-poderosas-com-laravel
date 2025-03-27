@@ -25,7 +25,7 @@ class QuestionController extends Controller
 
             $question = user()->questions()->create([
                 'question' => $request->question,
-                'status'   => $request->get('status', 'draft'),
+                'status' => $request->get('status', 'draft'),
             ]);
 
             // return new QuestionResource($question);
@@ -43,7 +43,6 @@ class QuestionController extends Controller
      */
     public function show(Question $question)
     {
-        //
     }
 
     /**
@@ -51,7 +50,18 @@ class QuestionController extends Controller
      */
     public function update(UpdateQuestionRequest $request, Question $question)
     {
-        //
+        try {
+            $question->update([
+                'question' => $request->question,
+                'status' => $request->get('status', 'draft'),
+            ]);
+
+            return QuestionResource::make($question);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
