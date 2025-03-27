@@ -5,6 +5,7 @@ use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 use function Pest\Laravel\assertDatabaseCount;
 use function Pest\Laravel\assertDatabaseHas;
+use function Pest\Laravel\assertDatabaseMissing;
 use function Pest\Laravel\postJson;
 use function Pest\Laravel\putJson;
 
@@ -82,7 +83,7 @@ describe('validation rules', function () {
 
         putJson(route('questions.update', $this->question), [
             'question' => 'Question Title 2?'
-        ])->dump()->assertJsonValidationErrors(['question' => 'has already been taken.']);
+        ])->assertJsonValidationErrors(['question' => 'has already been taken.']);
 
         assertDatabaseHas('questions', ['question' => 'Question Title 2?']);
         expect(Question::where('question', 'Question Title 2?')->count())->toBe(1);
@@ -93,10 +94,33 @@ describe('validation rules', function () {
 
         putJson(route('questions.update', $this->question), [
             'question' => $this->question->question,
-        ])->dump()->assertJsonMissingValidationErrors('question');
+        ])->assertOk()->assertJsonMissingValidationErrors('question');
 
         assertDatabaseHas('questions', ['question' => $this->question->question]);
         expect(Question::where('question', $this->question->question)->count())->toBe(1);
     });
+});
 
+describe('security', function (){
+    test('only the person who create the question can update the same question', function(){
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+
+        $question = $user1->questions()->create([
+            'question' => 'Question Title?',
+            'status' => 'draft',
+        ]);
+
+        Sanctum::actingAs($user2);
+
+        putJson(route('questions.update', $question), [
+            'question' => 'Question Title 5?',
+        ])->assertForbidden();
+
+        assertDatabaseCount('questions', 3);
+        assertDatabaseMissing('questions', [
+            'question' => 'Question Title 5?',
+            'user_id' => $user1->id,
+        ]);
+    });
 });
