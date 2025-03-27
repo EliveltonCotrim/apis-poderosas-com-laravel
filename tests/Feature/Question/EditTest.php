@@ -1,24 +1,20 @@
 <?php
 
-use App\Models\Question;
-use App\Models\User;
+use App\Models\{Question, User};
 use Laravel\Sanctum\Sanctum;
-use function Pest\Laravel\assertDatabaseCount;
-use function Pest\Laravel\assertDatabaseHas;
-use function Pest\Laravel\assertDatabaseMissing;
-use function Pest\Laravel\postJson;
-use function Pest\Laravel\putJson;
+
+use function Pest\Laravel\{assertDatabaseCount, assertDatabaseHas, assertDatabaseMissing, putJson};
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
+    $this->user     = User::factory()->create();
     $this->question = $this->user->questions()->create([
         'question' => 'Question Title?',
-        'status' => 'draft',
+        'status'   => 'draft',
     ]);
 
     $this->user->questions()->create([
         'question' => 'Question Title 2?',
-        'status' => 'draft',
+        'status'   => 'draft',
     ]);
 });
 
@@ -27,7 +23,7 @@ it('should be able to update a question', function () {
     Sanctum::actingAs($this->user);
 
     $data = [
-        'status' => 'published',
+        'status'   => 'published',
         'question' => 'Question Title 1?',
     ];
 
@@ -65,7 +61,7 @@ describe('validation rules', function () {
         Sanctum::actingAs($this->user);
 
         putJson(route('questions.update', $this->question), [
-            'question' => 'Question?'
+            'question' => 'Question?',
         ])
             ->assertJsonValidationErrors(['question' => 'be at least 10']);
     });
@@ -74,7 +70,7 @@ describe('validation rules', function () {
         Sanctum::actingAs($this->user);
 
         putJson(route('questions.update', $this->question), [
-            'question' => 'Question without question mark'
+            'question' => 'Question without question mark',
         ])->assertJsonValidationErrors(['question' => 'O campo question deve terminar com "?"']);
     });
 
@@ -82,7 +78,7 @@ describe('validation rules', function () {
         Sanctum::actingAs($this->user);
 
         putJson(route('questions.update', $this->question), [
-            'question' => 'Question Title 2?'
+            'question' => 'Question Title 2?',
         ])->assertJsonValidationErrors(['question' => 'has already been taken.']);
 
         assertDatabaseHas('questions', ['question' => 'Question Title 2?']);
@@ -99,16 +95,30 @@ describe('validation rules', function () {
         assertDatabaseHas('questions', ['question' => $this->question->question]);
         expect(Question::where('question', $this->question->question)->count())->toBe(1);
     });
+
+    test('question::should be able to edit only if the status is in draft', function () {
+        Sanctum::actingAs($this->user);
+
+        $question = $this->user->questions()->create([
+            'question' => 'Question Title 3?',
+            'status'   => 'published',
+        ]);
+
+        putJson(route('questions.update', $question), [
+            'question' => 'Question Title 3?',
+            'status'   => 'published',
+        ])->assertJsonValidationErrors(['question' => 'The question should be a draft to be able to edit.']);
+    });
 });
 
-describe('security', function (){
-    test('only the person who create the question can update the same question', function(){
+describe('security', function () {
+    test('only the person who create the question can update the same question', function () {
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();
 
         $question = $user1->questions()->create([
             'question' => 'Question Title?',
-            'status' => 'draft',
+            'status'   => 'draft',
         ]);
 
         Sanctum::actingAs($user2);
@@ -120,7 +130,40 @@ describe('security', function (){
         assertDatabaseCount('questions', 3);
         assertDatabaseMissing('questions', [
             'question' => 'Question Title 5?',
-            'user_id' => $user1->id,
+            'user_id'  => $user1->id,
         ]);
     });
+});
+
+test('after updated we we should return a status 200 with the creted question', function () {
+
+    Sanctum::actingAs($this->user);
+
+    $response = putJson(route('questions.update', $this->question), [
+        'question' => 'Question Title 355?',
+    ])->assertOk()
+        ->assertSessionHasNoErrors();
+
+    $question = Question::latest()->first()->load('user');
+
+    $response->assertJson([
+        'data' => [
+            'id'         => $question->id,
+            'question'   => $question->question,
+            'status'     => $question->status,
+            'created_by' => [
+                'id'    => $question->user->id,
+                'name'  => $question->user->name,
+                'email' => $question->user->email,
+            ],
+            'created_at' => $question->created_at->format('Y-m-d H:i:s'),
+            'updated_at' => $question->updated_at->format('Y-m-d H:i:s'),
+        ],
+    ]);
+
+    assertDatabaseCount('questions', 2);
+    assertDatabaseHas('questions', [
+        'user_id'  => $this->user->id,
+        'question' => 'Question Title 355?',
+    ]);
 });

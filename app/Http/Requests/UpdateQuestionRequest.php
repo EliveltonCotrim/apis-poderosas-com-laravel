@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Rules\WithQuestionMark;
+use App\Rules\{OnlyAsDraft, WithQuestionMark};
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -30,8 +30,19 @@ class UpdateQuestionRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var \App\Models\Question $question */
+        $question = $this->route('question');
+
         return [
-            'question' => ['required', 'string', 'min:10', 'max:1000', Rule::unique('questions', 'question')->ignore($this->route('question')->id), new WithQuestionMark],
+            'question' => [
+                'required',
+                'string',
+                'min:10',
+                'max:1000',
+                Rule::unique('questions', 'question')->ignore($question),
+                new WithQuestionMark(),
+                new OnlyAsDraft(question: $question),
+            ],
             'status' => ['nullable', 'string', 'in:draft,published'],
         ];
     }

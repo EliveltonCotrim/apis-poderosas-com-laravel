@@ -23,8 +23,8 @@ class StoreQuestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'question' => ['required', 'string', 'min:10','max:1000', 'unique:questions,question',new WithQuestionMark],
-            'status' => ['nullable', 'string', 'in:draft,published'],
+            'question' => ['required', 'string', 'min:10', 'max:1000', 'unique:questions,question', new WithQuestionMark()],
+            'status'   => ['nullable', 'string', 'in:draft,published'],
         ];
     }
 }

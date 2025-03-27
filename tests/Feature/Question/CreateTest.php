@@ -1,11 +1,9 @@
 <?php
 
-use App\Models\Question;
-use App\Models\User;
+use App\Models\{Question, User};
 use Laravel\Sanctum\Sanctum;
 
-use function Pest\Laravel\{assertDatabaseCount, assertDatabaseHas, postJson, assertDatabaseEmpty};
-use App\Rules\WithQuestionMark;
+use function Pest\Laravel\{assertDatabaseCount, assertDatabaseEmpty, assertDatabaseHas, postJson};
 
 it('should be create a mew question', function () {
     $user = User::factory()->create();
@@ -13,7 +11,7 @@ it('should be create a mew question', function () {
     Sanctum::actingAs($user);
 
     postJson(route('questions.store'), [
-        'status' => 'draft',
+        'status'   => 'draft',
         'question' => 'Question Title?',
     ])->assertCreated()
         ->assertSessionHasNoErrors()
@@ -29,7 +27,7 @@ it('should be create a mew question', function () {
 
     assertDatabaseCount('questions', 1);
     assertDatabaseHas('questions', [
-        'user_id' => $user->id,
+        'user_id'  => $user->id,
         'question' => 'Question Title?',
     ]);
 
@@ -61,8 +59,8 @@ test('with the creation of the question, we need to make sure that it cretes wit
 
     assertDatabaseCount('questions', 1);
     assertDatabaseHas('questions', [
-        'status' => 'draft',
-        'user_id' => $user->id,
+        'status'   => 'draft',
+        'user_id'  => $user->id,
         'question' => 'Question Title ? ?',
     ]);
 });
@@ -84,7 +82,7 @@ describe('validation rules', function () {
         Sanctum::actingAs($user);
 
         postJson(route('questions.store'), [
-            'question' => 'Question without question mark'
+            'question' => 'Question without question mark',
         ])->assertJsonValidationErrors(['question' => 'O campo question deve terminar com "?"']);
 
         assertDatabaseEmpty('questions');
@@ -96,7 +94,7 @@ describe('validation rules', function () {
         Sanctum::actingAs($user);
 
         postJson(route('questions.store'), [
-            'question' => 'Question?'
+            'question' => 'Question?',
         ])->assertJsonValidationErrors(['question' => 'be at least 10']);
 
         assertDatabaseEmpty('questions');
@@ -109,7 +107,7 @@ describe('validation rules', function () {
         Sanctum::actingAs($user);
 
         postJson(route('questions.store'), [
-            'question' => 'Question Title ? ?'
+            'question' => 'Question Title ? ?',
         ])->assertJsonValidationErrors(['question' => 'has already been taken.']);
 
         assertDatabaseHas('questions', ['question' => 'Question Title ? ?']);
@@ -131,24 +129,22 @@ test('after creating we we should return a status 201 with the creted question',
 
     $response->assertJson([
         'data' => [
-            'id' => $question->id,
-            'question' => $question->question,
-            'status' => $question->status,
+            'id'         => $question->id,
+            'question'   => $question->question,
+            'status'     => $question->status,
             'created_by' => [
-                'id' => $question->user->id,
-                'name' => $question->user->name,
+                'id'    => $question->user->id,
+                'name'  => $question->user->name,
                 'email' => $question->user->email,
             ],
             'created_at' => $question->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $question->updated_at->format('Y-m-d H:i:s'),
-        ]
+        ],
     ]);
 
     assertDatabaseCount('questions', 1);
     assertDatabaseHas('questions', [
-        'user_id' => $user->id,
+        'user_id'  => $user->id,
         'question' => 'Question Title?',
     ]);
 });
-
-

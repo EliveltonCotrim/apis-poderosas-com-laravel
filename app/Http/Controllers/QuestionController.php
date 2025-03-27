@@ -25,7 +25,7 @@ class QuestionController extends Controller
 
             $question = user()->questions()->create([
                 'question' => $request->question,
-                'status' => $request->get('status', 'draft'),
+                'status'   => $request->get('status', 'draft'),
             ]);
 
             // return new QuestionResource($question);
@@ -53,7 +53,7 @@ class QuestionController extends Controller
         try {
             $question->update([
                 'question' => $request->question,
-                'status' => $request->get('status', 'draft'),
+                'status'   => $request->get('status', 'draft'),
             ]);
 
             return QuestionResource::make($question);
