@@ -27,7 +27,7 @@ class UpdateQuestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'question' => ['required', 'string', 'min:10', 'max:1000', Rule::unique('questions', 'question'), new WithQuestionMark],
+            'question' => ['required', 'string', 'min:10', 'max:1000', Rule::unique('questions', 'question')->ignore($this->route('question')->id), new WithQuestionMark],
             'status' => ['nullable', 'string', 'in:draft,published'],
         ];
     }
