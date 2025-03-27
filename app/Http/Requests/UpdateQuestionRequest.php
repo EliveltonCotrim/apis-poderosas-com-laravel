@@ -2,8 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\{OnlyAsDraft, WithQuestionMark};
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
+/**
+ * @property-read string $question
+ */
 class UpdateQuestionRequest extends FormRequest
 {
     /**
@@ -11,7 +17,10 @@ class UpdateQuestionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        /** @var \App\Models\Question $question */
+        $question = $this->route('question');
+
+        return Gate::allows('update', $question);
     }
 
     /**
@@ -21,8 +30,20 @@ class UpdateQuestionRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var \App\Models\Question $question */
+        $question = $this->route('question');
+
         return [
-            //
+            'question' => [
+                'required',
+                'string',
+                'min:10',
+                'max:1000',
+                Rule::unique('questions', 'question')->ignore($question),
+                new WithQuestionMark(),
+                new OnlyAsDraft(question: $question),
+            ],
+            'status' => ['nullable', 'string', 'in:draft,published'],
         ];
     }
 }

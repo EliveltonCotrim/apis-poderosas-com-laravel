@@ -4,7 +4,7 @@ use App\Models\User;
 
 function user(): ?User
 {
-    if(auth()->check()) {
+    if (auth()->check()) {
         return auth()->user();
     }
 
