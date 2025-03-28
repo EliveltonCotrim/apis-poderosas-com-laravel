@@ -1,8 +1,10 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use function Pest\Laravel\assertDatabaseCount;
+use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\assertDatabaseMissing;
 use function Pest\Laravel\deleteJson;
 
@@ -30,3 +32,29 @@ it('should be able to delete a question', function () {
         'id' => $this->question->id,
     ]);
 });
+
+it('should allow that only the creator can delete', function () {
+    $user2 = User::factory()->create();
+
+    Sanctum::actingAs($user2);
+
+    deleteJson(route('questions.destroy', $this->question))
+        ->assertForbidden();
+
+    assertDatabaseCount('questions', 2);
+    assertDatabaseHas('questions', [
+        'id' => $this->question->id,
+    ]);
+});
+
+it('not should delete with id invalid', function () {
+
+    Sanctum::actingAs($this->user);
+
+    deleteJson(route('questions.destroy', Str::uuid()))
+        ->assertNotFound();
+
+    assertDatabaseCount('questions', 2);
+
+});
+

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\{StoreQuestionRequest, UpdateQuestionRequest};
 use App\Http\Resources\QuestionResource;
 use App\Models\Question;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
 
 class QuestionController extends Controller
 {
@@ -71,14 +73,22 @@ class QuestionController extends Controller
     public function destroy(Question $question)
     {
         try {
+            Gate::authorize('forceDelete', $question);
+
             $question->forceDelete();
 
             return response()->json([
                 'message' => 'Question deleted successfully',
             ], Response::HTTP_NO_CONTENT);
-        } catch (\Throwable $th) {
+
+        } catch (AuthorizationException $e) {
             return response()->json([
-                'message' => $th->getMessage(),
+                'message' => $e->getMessage(),
+            ], Response::HTTP_FORBIDDEN);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
