@@ -6,7 +6,6 @@ use App\Http\Requests\UserRegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -17,8 +16,8 @@ class AuthController extends Controller
             $validated = $request->validated();
 
             $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
+                'name'     => $validated['name'],
+                'email'    => $validated['email'],
                 'password' => Hash::make($validated['password']),
             ]);
 
@@ -27,11 +26,11 @@ class AuthController extends Controller
                     'message' => 'User registered successfully',
                 ])->response()
                 ->setStatusCode(201);
-                
+
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Error registering user',
-                'error' => $e->getMessage(),
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
