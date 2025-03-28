@@ -92,4 +92,27 @@ class QuestionController extends Controller
             ], 500);
         }
     }
+
+    public function archive(Question $question)
+    {
+        try {
+            Gate::authorize('archive', $question);
+
+            $question->delete();
+
+            return response()->json([
+                'message' => 'Question archived successfully',
+            ], Response::HTTP_NO_CONTENT);
+
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], Response::HTTP_FORBIDDEN);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
