@@ -30,10 +30,7 @@ it('should be able to register in the application', function () {
 describe('validations', function () {
     test('name', function ($rule, $value, $meta = []) {
         postJson(route('auth.register'), [
-            'name'                  => $value,
-            'email'                 => 'teste@gmail.com',
-            'password'              => 'password',
-            'password_confirmation' => 'password',
+            'name' => $value,
         ])->assertJsonValidationErrors([
             'name' => __('validation.' . $rule, array_merge(['attribute' => 'name'], $meta)),
         ]);
@@ -46,10 +43,7 @@ describe('validations', function () {
 
     test('email', function ($rule, $value, $meta = []) {
         postJson(route('auth.register'), [
-            'name'                  => 'Test User',
-            'email'                 => $value,
-            'password'              => 'password',
-            'password_confirmation' => 'password',
+            'email' => $value,
         ])->assertJsonValidationErrors([
             'email' => __('validation.' . $rule, array_merge(['attribute' => 'email'], $meta)),
         ]);
@@ -59,5 +53,19 @@ describe('validations', function () {
         'email'              => ['email', 'abdsadas'],
         'max:255'            => ['max.string', Str::random(256), ['max' => '255']],
         'unique:users,email' => ['unique', 'teste1@gmail.com'],
+    ]);
+
+    test('password', function ($rule, $value, $meta = []) {
+        postJson(route('auth.register'), [
+            'password' => $value,
+        ])->assertJsonValidationErrors([
+            'password' => __('validation.' . $rule, array_merge(['attribute' => 'password'], $meta)),
+        ]);
+    })->with([
+        'required'  => ['required', ''],
+        'string'    => ['string', 556],
+        'max:40'    => ['max.string', Str::random(45), ['max' => '40']],
+        'min:6'     => ['min.string', 'ab', ['min' => '6']],
+        'confirmed' => ['confirmed', 'password'],
     ]);
 });
