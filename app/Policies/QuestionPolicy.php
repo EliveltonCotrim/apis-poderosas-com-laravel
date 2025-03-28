@@ -51,7 +51,7 @@ class QuestionPolicy
      */
     public function restore(User $user, Question $question): bool
     {
-        return false;
+        return $user->is($question->user);
     }
 
     /**

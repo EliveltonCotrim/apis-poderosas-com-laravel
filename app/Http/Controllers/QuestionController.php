@@ -6,6 +6,7 @@ use App\Http\Requests\{StoreQuestionRequest, UpdateQuestionRequest};
 use App\Http\Resources\QuestionResource;
 use App\Models\Question;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 
@@ -108,6 +109,34 @@ class QuestionController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
             ], Response::HTTP_FORBIDDEN);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function restore(int $question_id)
+    {
+        try {
+            $question = Question::onlyTrashed()->findOrFail($question_id);
+
+            Gate::authorize('restore', $question);
+            $question->restore();
+
+            return response()->json([
+                'message' => 'Question restored successfully',
+            ], Response::HTTP_OK);
+
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], Response::HTTP_FORBIDDEN);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], Response::HTTP_NOT_FOUND);
 
         } catch (\Exception $e) {
             return response()->json([
