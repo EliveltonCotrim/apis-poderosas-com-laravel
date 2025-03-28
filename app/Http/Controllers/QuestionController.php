@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\{StoreQuestionRequest, UpdateQuestionRequest};
 use App\Http\Resources\QuestionResource;
 use App\Models\Question;
+use Illuminate\Http\Response;
 
 class QuestionController extends Controller
 {
@@ -25,7 +26,7 @@ class QuestionController extends Controller
 
             $question = user()->questions()->create([
                 'question' => $request->question,
-                'status'   => $request->get('status', 'draft'),
+                'status' => $request->get('status', 'draft'),
             ]);
 
             // return new QuestionResource($question);
@@ -53,7 +54,7 @@ class QuestionController extends Controller
         try {
             $question->update([
                 'question' => $request->question,
-                'status'   => $request->get('status', 'draft'),
+                'status' => $request->get('status', 'draft'),
             ]);
 
             return QuestionResource::make($question);
@@ -69,6 +70,16 @@ class QuestionController extends Controller
      */
     public function destroy(Question $question)
     {
-        //
+        try {
+            $question->forceDelete();
+
+            return response()->json([
+                'message' => 'Question deleted successfully',
+            ], Response::HTTP_NO_CONTENT);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => $th->getMessage(),
+            ], 500);
+        }
     }
 }
