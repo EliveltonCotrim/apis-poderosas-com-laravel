@@ -1,24 +1,20 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
-use function Pest\Laravel\assertDatabaseCount;
-use function Pest\Laravel\assertDatabaseHas;
-use function Pest\Laravel\assertNotSoftDeleted;
-use function Pest\Laravel\assertSoftDeleted;
-use function Pest\Laravel\putJson;
+
+use function Pest\Laravel\{assertDatabaseCount, assertNotSoftDeleted, assertSoftDeleted, putJson};
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
+    $this->user     = User::factory()->create();
     $this->question = $this->user->questions()->create([
         'question' => 'Question Title?',
-        'status' => 'draft',
+        'status'   => 'draft',
     ]);
 
     $this->user->questions()->create([
         'question' => 'Question Title 1?',
-        'status' => 'draft',
+        'status'   => 'draft',
     ]);
 });
 
@@ -68,4 +64,3 @@ it('not should restore with id invalid', function () {
     ]);
 
 });
-

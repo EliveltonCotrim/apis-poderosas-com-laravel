@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\{StoreQuestionRequest, UpdateQuestionRequest};
 use App\Http\Resources\QuestionResource;
 use App\Models\Question;
+use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Response;
@@ -29,7 +30,7 @@ class QuestionController extends Controller
 
             $question = user()->questions()->create([
                 'question' => $request->question,
-                'status' => $request->get('status', 'draft'),
+                'status'   => $request->get('status', 'draft'),
             ]);
 
             // return new QuestionResource($question);
@@ -57,7 +58,7 @@ class QuestionController extends Controller
         try {
             $question->update([
                 'question' => $request->question,
-                'status' => $request->get('status', 'draft'),
+                'status'   => $request->get('status', 'draft'),
             ]);
 
             return QuestionResource::make($question);
@@ -142,6 +143,39 @@ class QuestionController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Publish the specified resource from storage.
+     */
+    public function publish(Question $question)
+    {
+        try {
+            Gate::authorize('publish', $question);
+
+            throw_unless(
+                $question->status === 'draft',
+                new Exception('Question is not in draft status', Response::HTTP_NOT_FOUND)
+            );
+
+            $question->update([
+                'status' => 'published',
+            ]);
+
+            return response()->json([
+                'message' => 'Question published successfully',
+            ], Response::HTTP_NO_CONTENT);
+
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], Response::HTTP_FORBIDDEN);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
         }
     }
 }

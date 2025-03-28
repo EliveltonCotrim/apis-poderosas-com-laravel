@@ -3,22 +3,19 @@
 use App\Models\User;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
-use function Pest\Laravel\assertDatabaseCount;
-use function Pest\Laravel\assertDatabaseHas;
-use function Pest\Laravel\assertDatabaseMissing;
-use function Pest\Laravel\assertSoftDeleted;
-use function Pest\Laravel\deleteJson;
+
+use function Pest\Laravel\{assertDatabaseCount, assertDatabaseHas, assertSoftDeleted, deleteJson};
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
+    $this->user     = User::factory()->create();
     $this->question = $this->user->questions()->create([
         'question' => 'Question Title?',
-        'status' => 'draft',
+        'status'   => 'draft',
     ]);
 
     $this->user->questions()->create([
         'question' => 'Question Title 1?',
-        'status' => 'draft',
+        'status'   => 'draft',
     ]);
 });
 
@@ -58,4 +55,3 @@ it('not should archive with id invalid', function () {
     assertDatabaseCount('questions', 2);
 
 });
-
