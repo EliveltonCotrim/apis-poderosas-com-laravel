@@ -3,7 +3,7 @@
 use App\Models\User;
 use Illuminate\Support\Str;
 
-use function Pest\Laravel\{assertDatabaseHas, postJson};
+use function Pest\Laravel\{assertDatabaseHas, postJson, assertAuthenticatedAs};
 
 beforeEach(function () {
     User::factory()->create([
@@ -25,6 +25,19 @@ it('should be able to register in the application', function () {
     ]);
 
     expect(Hash::check('password', User::find($response->json()['data']['id'])->password))->toBeTrue();
+});
+
+it('should log the new user in the system', function () {
+    $response = postJson(route('auth.register'), [
+        'name'                  => 'Test User',
+        'email'                 => 'teste@gmail.com',
+        'password'              => 'password',
+        'password_confirmation' => 'password',
+    ])->assertCreated();
+
+    $user = User::find($response->json()['data']['id']);
+
+    assertAuthenticatedAs($user);
 });
 
 describe('validations', function () {
