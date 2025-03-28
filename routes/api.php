@@ -16,6 +16,7 @@ Route::middleware('throttle:10,1')->get('/teste', function () {
 Route::middleware('auth:sanctum')->group(function () {
     // region questions
     Route::apiResource('questions', QuestionController::class);
+    Route::delete('questions/archive/{question}', [QuestionController::class, 'archive'])->name('questions.archive');
     // endregion
 });
 // endrefion
