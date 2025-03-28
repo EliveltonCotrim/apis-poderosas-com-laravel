@@ -16,8 +16,13 @@ Route::middleware('throttle:10,1')->get('/teste', function () {
 Route::middleware('auth:sanctum')->group(function () {
     // region questions
     Route::apiResource('questions', QuestionController::class);
-    Route::delete('questions/{question}/archive', [QuestionController::class, 'archive'])->name('questions.archive');
-    Route::put('questions/{question}/restore', [QuestionController::class, 'restore'])->name('questions.restore');
+
+    Route::controller(QuestionController::class)->group(function () {
+        Route::delete('questions/{question}/archive', 'archive')->name('questions.archive');
+        Route::put('questions/{question}/restore', 'restore')->name('questions.restore');
+
+        Route::put('questions/{question}/publish', 'publish')->name('questions.publish');
+    });
     // endregion
 });
 // endrefion
