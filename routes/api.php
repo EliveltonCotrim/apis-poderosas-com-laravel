@@ -4,20 +4,17 @@ use App\Http\Controllers\{AuthController, QuestionController};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
-Route::controller(AuthController::class)->prefix('/auth')->group(function () {
+Route::controller(AuthController::class)->middleware(['guest'])->prefix('/auth')->group(function () {
     Route::post('/register', 'register')->name('auth.register');
-    // Route::post('/login', 'login')->name('auth.login');
+    Route::post('/login', 'login')->name('auth.login');
     // Route::post('/logout', 'logout')->name('auth.logout');
-});
-Route::prefix('/auth')->middleware(['guest', 'web'])->group(function () {
 });
 
 // region Authenticated
 Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/user', fn (Request $request) => $request->user());
+
     // region questions
     Route::apiResource('questions', QuestionController::class);
 
