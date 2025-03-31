@@ -8,12 +8,12 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::prefix('/auth')->group(function () {
-    Route::controller(AuthController::class)->group(function () {
-        Route::post('/register', 'register')->name('auth.register');
-        // Route::post('/login', 'login')->name('auth.login');
-        // Route::post('/logout', 'logout')->name('auth.logout');
-    });
+Route::controller(AuthController::class)->prefix('/auth')->group(function () {
+    Route::post('/register', 'register')->name('auth.register');
+    // Route::post('/login', 'login')->name('auth.login');
+    // Route::post('/logout', 'logout')->name('auth.logout');
+});
+Route::prefix('/auth')->middleware(['guest', 'web'])->group(function () {
 });
 
 // region Authenticated
