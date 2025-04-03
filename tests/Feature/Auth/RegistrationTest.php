@@ -15,6 +15,7 @@ it('should be able to register in the application', function () {
     $response = postJson(route('auth.register'), [
         'name'                  => 'Test User',
         'email'                 => 'teste@gmail.com',
+        'email_confirmation'                 => 'teste@gmail.com',
         'password'              => 'password',
         'password_confirmation' => 'password',
     ])->assertCreated()->assertSessionDoesntHaveErrors();
@@ -31,6 +32,7 @@ it('should log the new user in the system', function () {
     $response = postJson(route('auth.register'), [
         'name'                  => 'Test User',
         'email'                 => 'teste@gmail.com',
+        'email_confirmation'                 => 'teste@gmail.com',
         'password'              => 'password',
         'password_confirmation' => 'password',
     ])->assertCreated();
@@ -55,6 +57,13 @@ describe('validations', function () {
     ]);
 
     test('email', function ($rule, $value, $meta = []) {
+
+        if($rule === 'unique'){
+            User::factory()->create([
+                'email' => $value,
+            ]);
+        }
+
         postJson(route('auth.register'), [
             'email' => $value,
         ])->assertJsonValidationErrors([
@@ -65,7 +74,8 @@ describe('validations', function () {
         'string'             => ['string', 556],
         'email'              => ['email', 'abdsadas'],
         'max:255'            => ['max.string', Str::random(256), ['max' => '255']],
-        'unique:users,email' => ['unique', 'teste1@gmail.com'],
+        'unique' => ['unique', 'teste3@gmail.com'],
+        'confirmed' => ['confirmed', 'teste3@gmail.com'],
     ]);
 
     test('password', function ($rule, $value, $meta = []) {

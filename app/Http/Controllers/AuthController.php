@@ -45,7 +45,7 @@ class AuthController extends Controller
         try {
             if (!auth()->attempt($request->only('email', 'password'))) {
                 throw ValidationException::withMessages([
-                    'email' => __('auth.failed')
+                    'msg' => __('auth.failed')
                 ]);
             }
 
