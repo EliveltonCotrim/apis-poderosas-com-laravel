@@ -7,7 +7,7 @@ use App\Http\Requests\UserRegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Exception;
-use Illuminate\Http\Response;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -56,6 +56,23 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Error logging in',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function logout(Request $request)
+    {
+        try {
+            auth()->logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerate();
+
+            return response()->noContent();
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error logging out',
                 'error' => $e->getMessage(),
             ], 500);
         }
