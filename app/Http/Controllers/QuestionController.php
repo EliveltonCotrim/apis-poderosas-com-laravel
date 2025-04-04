@@ -18,7 +18,16 @@ class QuestionController extends Controller
      */
     public function index()
     {
-        //
+        try {
+            $questions = Question::query()->where('status', 'published')->paginate(10);
+
+            return QuestionResource::collection($questions);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -30,7 +39,7 @@ class QuestionController extends Controller
 
             $question = user()->questions()->create([
                 'question' => $request->question,
-                'status'   => $request->get('status', 'draft'),
+                'status' => $request->get('status', 'draft'),
             ]);
 
             // return new QuestionResource($question);
@@ -58,7 +67,7 @@ class QuestionController extends Controller
         try {
             $question->update([
                 'question' => $request->question,
-                'status'   => $request->get('status', 'draft'),
+                'status' => $request->get('status', 'draft'),
             ]);
 
             return QuestionResource::make($question);
